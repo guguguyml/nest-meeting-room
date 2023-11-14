@@ -4,6 +4,9 @@ import {
 	ILoginResponse,
 	ILoginUser,
 	IUpdatePassword,
+	IUpdateUserInfo,
+	IUpdateUserInfoResponse,
+	IUserInfo,
 } from "@/interfaces/users";
 
 /**
@@ -43,3 +46,21 @@ export const updatePasswordCaptcha = (email: string) =>
 			address: email,
 		},
 	});
+/**
+ * 获取用户信息
+ */
+export const getUserInfo = () => request.get<IUserInfo>("/user/info");
+
+/**
+ * 用户更新信息
+ */
+export const updateUserInfo = (data: IUpdateUserInfo) =>
+	request.post<string>("/user/update", data);
+/**
+ * 用户获取更新用户信息的邮箱验证码
+ */
+export const getUpdateUserCaptcha = () =>
+	request.get<string>("/user/update/captcha");
+
+export const setData = (createWenjieDto: any) =>
+	request.post<string>("/wenjie", createWenjieDto);

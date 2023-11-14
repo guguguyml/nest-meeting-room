@@ -1,5 +1,5 @@
 import { UserOutlined } from "@ant-design/icons";
-import { Outlet } from "react-router-dom";
+import { Outlet, Link } from "react-router-dom";
 import "./index.css";
 
 export function Layout() {
@@ -7,7 +7,9 @@ export function Layout() {
 		<div id="index-container">
 			<div className="header">
 				<h1>会议室预定系统</h1>
-				<UserOutlined className="icon" />
+				<Link to={"/update_info"}>
+					<UserOutlined className="icon" />
+				</Link>
 			</div>
 			<div className="body">
 				<Outlet></Outlet>

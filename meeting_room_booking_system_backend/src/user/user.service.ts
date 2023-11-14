@@ -110,10 +110,11 @@ export class UserService {
             },
             relations: ['roles', 'roles.permissions'],
         });
-
+        console.log(user, 4444);
         return {
             id: user.id,
             username: user.username,
+            email: user.email,
             isAdmin: user.isAdmin,
             roles: user.roles.map((item) => item.name),
             permissions: user.roles.reduce((arr, item) => {

@@ -8,11 +8,16 @@ import { AppService } from './app.service';
 import { User } from './user/entities/user.entity';
 import { Role } from './user/entities/role.entity';
 import { Permission } from './user/entities/permissions.entity';
+import { MeetingRoom } from './meeting-room/entities/meeting-room.entity';
 import { UserModule } from './user/user.module';
 import { RedisModule } from './redis/redis.module';
 import { EmailModule } from './email/email.module';
 import { LoginGuard } from './login.guard';
 import { PermissionGuard } from './permission.guard';
+import { WenjieModule } from './wenjie/wenjie.module';
+import { Order } from './wenjie/entities/wenjie.entity';
+import { SubOrder } from './wenjie/entities/wenjie.orders.entity';
+import { MeetingRoomModule } from './meeting-room/meeting-room.module';
 
 @Module({
     imports: [
@@ -46,7 +51,14 @@ import { PermissionGuard } from './permission.guard';
                     synchronize: true,
                     timezone: '+08:00', // 设置时区
                     logging: false,
-                    entities: [User, Role, Permission],
+                    entities: [
+                        User,
+                        Role,
+                        Permission,
+                        Order,
+                        SubOrder,
+                        MeetingRoom,
+                    ],
                     poolSize: 10,
                     connectorPackage: 'mysql2',
                     extra: {
@@ -58,6 +70,8 @@ import { PermissionGuard } from './permission.guard';
         }),
         RedisModule,
         EmailModule,
+        WenjieModule,
+        MeetingRoomModule,
     ],
     controllers: [AppController],
     providers: [

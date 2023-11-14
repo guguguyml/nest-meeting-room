@@ -19,6 +19,13 @@ type Result<T> = {
 	data: T;
 };
 
+interface PendingTask {
+	config: AxiosRequestConfig;
+	resolve: Function;
+}
+let refreshing = false;
+const queue: PendingTask[] = [];
+
 class Request {
 	instance: AxiosInstance;
 	baseConfig: AxiosRequestConfig = {
@@ -32,6 +39,11 @@ class Request {
 		this.instance.interceptors.request.use(
 			(config: InternalAxiosRequestConfig) => {
 				// 配置headers等
+				const accessToken = sessionStorage.getItem("access_token");
+
+				if (accessToken) {
+					config.headers.authorization = "Bearer " + accessToken;
+				}
 				return config;
 			},
 			(error: any) => {
@@ -43,11 +55,56 @@ class Request {
 			(res: AxiosResponse) => {
 				return res?.data || true;
 			},
-			(error: any) => {
-				message.error(
-					error.response.data.data || "系统繁忙，请稍后再试"
-				);
-				return Promise.reject(error.response.data);
+			async (error: any) => {
+				if (!error.response) {
+					return Promise.reject(error);
+				}
+				let { data, config } = error.response;
+
+				if (
+					data.code === 401 &&
+					config.url.includes("/user/refresh/token")
+				) {
+					return error.response;
+				}
+				if (refreshing) {
+					return new Promise(resolve => {
+						queue.push({
+							config,
+							resolve,
+						});
+					});
+				}
+
+				if (
+					data.code === 401 &&
+					!config.url.includes("/user/refresh/token")
+				) {
+					refreshing = true;
+
+					const res = await refreshToken();
+					refreshing = false;
+
+					if (res.code === 200) {
+						queue.forEach(({ config, resolve }) => {
+							resolve(this.instance(config));
+						});
+
+						return this.instance(config);
+					} else {
+						message.error(res.message);
+						setTimeout(() => {
+							window.location.href = "/login";
+						}, 1500);
+
+						return error.response.data;
+					}
+				} else {
+					message.error(
+						error.response.data.data || "系统繁忙，请稍后再试"
+					);
+					return Promise.reject(error.response.data);
+				}
 			}
 		);
 	}
@@ -88,5 +145,22 @@ class Request {
 }
 
 const request = new Request();
+
+interface IToken {
+	access_token: string;
+	refresh_token: string;
+}
+async function refreshToken() {
+	const res = await request.get<IToken | string>("/user/refresh/token", {
+		params: {
+			refreshToken: sessionStorage.getItem("refresh_token"),
+		},
+	});
+	const { data } = res;
+	const flag = typeof data !== "string";
+	flag && sessionStorage.setItem("access_token", data.access_token || "");
+	flag && sessionStorage.setItem("refresh_token", data.refresh_token || "");
+	return res;
+}
 
 export default request;

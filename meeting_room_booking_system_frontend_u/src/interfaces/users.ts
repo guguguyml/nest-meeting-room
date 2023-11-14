@@ -5,7 +5,7 @@ export interface ILoginUser {
 export interface ILoginResponse {
 	accessToken: string; // 确保响应中有 code 属性
 	refreshToken: string;
-	userInfo: any; // 这里可以是登录成功后返回的数据
+	userInfo: IUserInfo; // 这里可以是登录成功后返回的数据
 }
 
 export interface IRegisterUser {
@@ -23,4 +23,30 @@ export interface IUpdatePassword {
 	captcha: string;
 	password: string;
 	confirmPassword: string;
+}
+
+export interface IUpdateUserInfo {
+	headPic: string;
+	nickName: string;
+	email: string;
+	captcha: string;
+}
+export interface IUpdateUserInfoResponse {
+	userInfo: IUserInfo;
+	accessToken: string;
+	refreshToken: string;
+}
+
+export interface IUserInfo {
+	isAdmin: boolean;
+	roles: string[];
+	permissions: string;
+	headPic: string;
+	nickName: string;
+	email: string;
+	createTime: string;
+	id: number;
+	isFrozen: boolean;
+	phoneNumber: string;
+	username: string;
 }

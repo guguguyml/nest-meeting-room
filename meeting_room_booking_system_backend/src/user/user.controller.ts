@@ -14,6 +14,8 @@ import {
     HttpStatus,
     UnauthorizedException,
     BadRequestException,
+    UploadedFile,
+    UseInterceptors,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
@@ -24,6 +26,8 @@ import {
     ApiBody,
     ApiBearerAuth,
 } from '@nestjs/swagger';
+import { FileInterceptor } from '@nestjs/platform-express';
+import * as path from 'path';
 import { EmailService } from 'src/email/email.service';
 import { RedisService } from 'src/redis/redis.service';
 import { generateParseIntPipe } from 'src/utils/common';
@@ -38,6 +42,7 @@ import { UserDetailVo } from './vo/user-info.vo';
 import { LoginUserVo } from './vo/login-user.vo';
 import { RefreshTokenVo } from './vo/refresh-token.vo';
 import { UserListVo } from './vo/user-list.vo';
+import { storage } from 'src/my-file-storage';
 
 @ApiTags('用户管理模块')
 @Controller('user')
@@ -219,6 +224,7 @@ export class UserController {
             {
                 userId: vo.userInfo.id,
                 username: vo.userInfo.username,
+                email: vo.userInfo.email,
                 roles: vo.userInfo.roles,
                 permissions: vo.userInfo.permissions,
             },
@@ -264,6 +270,7 @@ export class UserController {
             {
                 userId: vo.userInfo.id,
                 username: vo.userInfo.username,
+                email: vo.userInfo.email,
                 roles: vo.userInfo.roles,
                 permissions: vo.userInfo.permissions,
             },
@@ -311,16 +318,15 @@ export class UserController {
     async refreshToken(@Query('refreshToken') refreshToken: string) {
         try {
             const data = this.jwtService.verify(refreshToken);
-
             const user = await this.userService.findUserById(
                 data.userId,
                 false,
             );
-
             const access_token = this.jwtService.sign(
                 {
                     userId: user.id,
                     username: user.username,
+                    email: user.email,
                     roles: user.roles,
                     permissions: user.permissions,
                 },
@@ -344,7 +350,6 @@ export class UserController {
                 },
             );
             const vo = new RefreshTokenVo();
-
             vo.access_token = access_token;
             vo.refresh_token = refresh_token;
 
@@ -384,6 +389,7 @@ export class UserController {
                 {
                     userId: user.id,
                     username: user.username,
+                    email: user.email,
                     roles: user.roles,
                     permissions: user.permissions,
                 },
@@ -411,6 +417,8 @@ export class UserController {
 
             vo.access_token = access_token;
             vo.refresh_token = refresh_token;
+
+            return vo;
         } catch (e) {
             throw new UnauthorizedException('token 已失效，请重新登录');
         }
@@ -489,18 +497,18 @@ export class UserController {
      * 获取更新信息邮箱验证码
      */
     @ApiBearerAuth()
-    @ApiQuery({
-        type: String,
-        name: 'address',
-        description: '邮箱地址',
-    })
+    // @ApiQuery({
+    //     type: String,
+    //     name: 'address',
+    //     description: '邮箱地址',
+    // })
     @ApiResponse({
         type: String,
         description: '发送成功',
     })
     @RequireLogin()
     @Get('update/captcha')
-    async updateCaptcha(@Query('address') address: string) {
+    async updateCaptcha(@UserInfo('email') address: string) {
         const code = Math.random().toString().slice(2, 8);
 
         await this.redisService.set(
@@ -535,5 +543,31 @@ export class UserController {
     async freeze(@Query('id') userId: number) {
         await this.userService.freezeUserById(userId);
         return 'success';
+    }
+
+    /**
+     * 用户上传
+     */
+    @Post('upload')
+    @UseInterceptors(
+        FileInterceptor('file', {
+            dest: 'uploads',
+            limits: {
+                fileSize: 1024 * 1024 * 3, // 限制图片大小最大 3M
+            },
+            storage: storage,
+            fileFilter(req, file, callback) {
+                const extname = path.extname(file.originalname);
+                if (['.png', '.jpg', '.gif'].includes(extname)) {
+                    callback(null, true);
+                } else {
+                    callback(new BadRequestException('只能上传图片'), false);
+                }
+            },
+        }),
+    )
+    uploadFile(@UploadedFile() file: Express.Multer.File) {
+        console.log('file', file);
+        return file.path;
     }
 }

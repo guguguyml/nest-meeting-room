@@ -9,6 +9,7 @@ import { meetingRoomList, deleteMeetingRoom } from "@/api/meeting-room";
 import {
 	ISearchMeetingRoom,
 	IMeetingRoomSearchResult,
+	IMeetingRoomSearchResponse,
 } from "@/interfaces/meeting-room";
 import { CreateMeetingRoomModal } from "./CreateMeetingRoomModal ";
 import { UpdateMeetingRoomModal } from "./UpdateMeetingRoom";
@@ -117,24 +118,23 @@ export function MeetingRoomManage() {
 				pageNo,
 				pageSize
 			);
-			console.log(res);
 
 			const { data, code } = res;
-			const flag = typeof data === "string";
+
 			if (code === 201 || code === 200) {
-				!flag &&
-					setMeetingRoomResult(
-						data.meetingRooms.map(
-							(item: IMeetingRoomSearchResult) => {
-								return {
-									key: item.id,
-									...item,
-								};
-							}
-						)
-					);
+				setMeetingRoomResult(
+					(data as IMeetingRoomSearchResponse).meetingRooms.map(
+						(item: IMeetingRoomSearchResult) => {
+							return {
+								key: item.id,
+								...item,
+							};
+						}
+					)
+				);
 			} else {
-				flag && message.error(data || "系统繁忙，请稍后再试");
+				message.error((data as string) || "系统繁忙，请稍后再试");
+				// flag && message.error(data || "系统繁忙，请稍后再试");
 			}
 		},
 		// eslint-disable-next-line react-hooks/exhaustive-deps

@@ -18,6 +18,9 @@ import { WenjieModule } from './wenjie/wenjie.module';
 import { Order } from './wenjie/entities/wenjie.entity';
 import { SubOrder } from './wenjie/entities/wenjie.orders.entity';
 import { MeetingRoomModule } from './meeting-room/meeting-room.module';
+import { BookingModule } from './booking/booking.module';
+import { Booking } from './booking/entities/booking.entity';
+import { StatisticModule } from './statistic/statistic.module';
 
 @Module({
     imports: [
@@ -58,6 +61,7 @@ import { MeetingRoomModule } from './meeting-room/meeting-room.module';
                         Order,
                         SubOrder,
                         MeetingRoom,
+                        Booking,
                     ],
                     poolSize: 10,
                     connectorPackage: 'mysql2',
@@ -72,6 +76,8 @@ import { MeetingRoomModule } from './meeting-room/meeting-room.module';
         EmailModule,
         WenjieModule,
         MeetingRoomModule,
+        BookingModule,
+        StatisticModule,
     ],
     controllers: [AppController],
     providers: [

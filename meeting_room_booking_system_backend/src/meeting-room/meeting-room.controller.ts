@@ -37,6 +37,7 @@ export class MeetingRoomController {
      */
     @Post('create')
     @ApiBearerAuth()
+    @RequireLogin()
     @ApiBody({
         type: CreateMeetingRoomDto,
     })
@@ -56,6 +57,7 @@ export class MeetingRoomController {
      * 获取会议室列表
      */
     @ApiBearerAuth()
+    @RequireLogin()
     @ApiQuery({
         name: 'pageNo',
         type: Number,
@@ -116,6 +118,7 @@ export class MeetingRoomController {
      */
     @Get(':id')
     @ApiBearerAuth()
+    @RequireLogin()
     @ApiParam({
         name: 'id',
         type: Number,
@@ -134,6 +137,7 @@ export class MeetingRoomController {
      */
     @Put('update')
     @ApiBearerAuth()
+    @RequireLogin()
     @ApiBody({
         type: UpdateMeetingRoomDto,
     })

@@ -483,7 +483,6 @@ export class UserController {
         description: '验证码已失效/不正确',
         type: String,
     })
-    @RequireLogin()
     @Post(['update', 'admin/update'])
     @RequireLogin()
     async update(
